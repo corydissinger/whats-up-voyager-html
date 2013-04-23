@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Voyager 1 Tour</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="Cory Dissinger">
+
+		<link href="./resources/css/bootstrap.min.css" rel="stylesheet">
+		<link href="./resources/css/custom-explore.css" rel="stylesheet">
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+
+	</head>
+	<body>
+		<div id="wrap">
+			<div id="map3d">
+				<h1 id="load-message">Please wait while Google Earth loads...</h1>
+			</div>
+			<div class="row" id="map-buttons">
+				<div class="span2 offset1">
+					<input type="button" class="btn-block btn-success" onclick="showLaunchInfo();" value="Launch Info"/>
+				</div>
+				<div class="span1">
+					<input type="button" class="btn-block btn-success" onclick="doLaunch();" value="Launch"/>
+				</div>
+				<div class="span1">
+					<input type="button" class="btn-block btn-success" onclick="switchToSky();" value="Sky"/>
+				</div>
+				<div class="span1">
+					<input type="button" class="btn-block btn-success" onclick="goToDay1();" value="Day 1"/>
+				</div>
+				<div class="span1">
+					<input type="button" class="btn-block btn-success" onclick="goToDay2();" value="Day 2"/>
+				</div>
+				<div class="span1">
+					<input type="button" class="btn-block btn-success" onclick="runTour();" value="Tour"/>
+				</div>
+			</div>
+		</div>
+		<script src="./resources/js/jquery.js"></script>
+		<script src="https://www.google.com/jsapi"></script>
+		<script>
+			var ge;
+
+			google.load("earth", "1");
+			google.setOnLoadCallback(init);
+
+			function init() {
+				google.earth.createInstance('map3d', initCB, failureCB);
+			}
+
+			function initCB(instance) {
+				ge = instance;
+				ge.getOptions().setStatusBarVisibility(true);
+				$("#load-message").remove();
+				ge.getWindow().setVisibility(true);
+				ge.getNavigationControl().setVisibility(true);
+				goToStartingPoint();
+			}
+
+			function failureCB(errorCode) {
+			}
+
+			function runTour() {
+				//Google Earth does not like relative URLS - they must be absolute.
+				//Change this to the location of the kml locally.
+				var href = './data/voyager_2day.kml';
+				google.earth.fetchKml(ge, href, kmlFinishedLoading);
+
+				function kmlFinishedLoading(object) {
+					ge.getTourPlayer().setTour(object);
+					ge.getTourPlayer().play();
+				}				
+			}
+
+			function goToStartingPoint() {
+				//ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);
+				//
+				var la = ge.createLookAt('');
+				la.set(28.458709, -80.528508, 50, ge.ALTITUDE_RELATIVE_TO_GROUND, 0, 0, 90);
+				ge.getView().setAbstractView(la);
+	
+				//cape canaveral 28.488889, -80.577778
+				//cape canaveral launch pad 28.458709, -80.528508
+			}
+
+			function doLaunch() {
+				ge.setBalloon(null);
+				var la = ge.createLookAt('');
+				//ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);
+				ge.getOptions().setFlyToSpeed(.15)
+				la.set(28.458709, -80.528508, 50, ge.ALTITUDE_RELATIVE_TO_GROUND, 0, 0, 900000000);
+				ge.getView().setAbstractView(la);
+	
+				//cape canaveral 28.488889, -80.577778
+				//cape canaveral launch pad 28.458709, -80.528508
+			}
+
+			function switchToSky() {
+				ge.getOptions().setMapType(ge.MAP_TYPE_SKY);
+			}
+
+			function goToDay1() {
+				//ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);
+				ge.getOptions().setFlyToSpeed(2.5);
+				var lookAt = ge.getView().copyAsLookAt(ge.ALTITUDE_RELATIVE_TO_GROUND);
+				lookAt.set(65.45370, 25.53700, 0, ge.ALTITUDE_RELATIVE_TO_GROUND, 262.87, 0, 162401);
+				ge.getView().setAbstractView(lookAt);
+			}
+
+			function goToDay2() {
+				var lookAt = ge.getView().copyAsLookAt(ge.ALTITUDE_RELATIVE_TO_GROUND);
+				lookAt.set(66.57385, 25.74445, 0, ge.ALTITUDE_RELATIVE_TO_GROUND, 262.87, 0, 162401);
+				ge.getView().setAbstractView(lookAt);
+			}
+
+			function showLaunchInfo(){
+				var placemark;
+				placemark = ge.createPlacemark('');
+	
+				var point = ge.createPoint('');
+				point.setLatitude(28.458709);
+				point.setLongitude(-80.528508);
+				placemark.setGeometry(point);
+	
+				var la = ge.createLookAt('');
+				la.set(28.458709, -80.528508, 50, ge.ALTITUDE_RELATIVE_TO_GROUND, 0, 0, 90);
+				ge.getView().setAbstractView(la);
+	
+				var balloon = ge.createHtmlStringBalloon('');
+				balloon.setFeature(placemark); // optional
+				balloon.setMaxWidth(300);
+	
+				balloon.setContentString(
+				'<font size=3>"5 Sept 1977, (28.458709, -80.528508):"</font><br>'
+				+ '<font size=# 3>"This is Kennedy Space Center, my home. I\'m about to go on a jo\
+				urney through the solar system. My mission is to explore Jupiter and Saturn, our largest\
+				planets - who knows what we\'ll find!"'
+				+ '</font>');
+	
+				ge.setBalloon(balloon);
+			}
+		</script>
+	</body>
+</html>
