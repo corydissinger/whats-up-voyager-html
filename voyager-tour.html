@@ -67,15 +67,20 @@
 			}
 
 			function runTour() {
-				//Google Earth does not like relative URLS - they must be absolute.
-				//Change this to the location of the kml locally.
-				var href = './data/voyager_2day.kml';
-				google.earth.fetchKml(ge, href, kmlFinishedLoading);
-
-				function kmlFinishedLoading(object) {
-					ge.getTourPlayer().setTour(object);
-					ge.getTourPlayer().play();
-				}				
+				switchToSky();
+				// Set the historical imagery and timeline on
+				ge.getTime().setHistoricalImageryEnabled(true);
+				ge.getTime().getControl().setVisibility(ge.VISIBILITY_SHOW);
+				// Load the Voyager coordinates
+				var href = 'https://raw.github.com/corydissinger/whats-up-voyager-html/master/data/voyager_coordinates.kml';
+				google.earth.fetchKml(ge, href, function(kmlObject) {
+					if (kmlObject){
+						ge.getFeatures().appendChild(kmlObject);
+						ge.getTourPlayer().setTour(kmlObject);
+						ge.getTourPlayer().getControl().setVisibility(true);
+						ge.getTourPlayer().play();
+					}
+				});
 			}
 
 			function goToStartingPoint() {
@@ -83,6 +88,10 @@
 				//
 				var la = ge.createLookAt('');
 				la.set(28.458709, -80.528508, 50, ge.ALTITUDE_RELATIVE_TO_GROUND, 0, 0, 90);
+				// Set the day of launch ... although there is not very good Google imagery for that day
+				//var timeStamp = ge.createTimeStamp('launch');
+				//timeStamp.getWhen().set('1977-09-05');
+				//ge.getTime().setTimePrimitive(timeStamp);
 				ge.getView().setAbstractView(la);
 	
 				//cape canaveral 28.488889, -80.577778
@@ -90,6 +99,8 @@
 			}
 
 			function doLaunch() {
+				switchToEarth();
+				goToStartingPoint();
 				ge.setBalloon(null);
 				var la = ge.createLookAt('');
 				//ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);
@@ -105,8 +116,16 @@
 				ge.getOptions().setMapType(ge.MAP_TYPE_SKY);
 			}
 
+			function switchToEarth() {
+				// Set the historical imagery and timeline off on Earth. This seems to give the best imagery
+				ge.getTime().setHistoricalImageryEnabled(false);
+				ge.getTime().getControl().setVisibility(ge.VISIBILITY_HIDE);
+				ge.getOptions().setMapType(ge.MAP_TYPE_EARTH);
+			}
+
 			function goToDay1() {
 				//ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);
+				switchToSky();
 				ge.getOptions().setFlyToSpeed(2.5);
 				var lookAt = ge.getView().copyAsLookAt(ge.ALTITUDE_RELATIVE_TO_GROUND);
 				lookAt.set(65.45370, 25.53700, 0, ge.ALTITUDE_RELATIVE_TO_GROUND, 262.87, 0, 162401);
@@ -114,12 +133,14 @@
 			}
 
 			function goToDay2() {
+				switchToSky();
 				var lookAt = ge.getView().copyAsLookAt(ge.ALTITUDE_RELATIVE_TO_GROUND);
 				lookAt.set(66.57385, 25.74445, 0, ge.ALTITUDE_RELATIVE_TO_GROUND, 262.87, 0, 162401);
 				ge.getView().setAbstractView(lookAt);
 			}
 
 			function showLaunchInfo(){
+				switchToEarth();
 				var placemark;
 				placemark = ge.createPlacemark('');
 	
@@ -138,8 +159,8 @@
 	
 				balloon.setContentString(
 				'<font size=3>"5 Sept 1977, (28.458709, -80.528508):"</font><br>'
-				+ '<font size=# 3>"This is Kennedy Space Center, my home. I\'m about to go on a jo\
-				urney through the solar system. My mission is to explore Jupiter and Saturn, our largest\
+				+ '<font size=# 3>"This is Kennedy Space Center, my home. I\'m about to go on a journey\
+				through the solar system. My mission is to explore Jupiter and Saturn, our largest\
 				planets - who knows what we\'ll find!"'
 				+ '</font>');
 	
